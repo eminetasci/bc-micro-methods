@@ -1,0 +1,97 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+--
+output:
+  pdf_document: default
+  html_document: default
+---
+# Emprical Methods HW1 
+## Emine Tasci
+
+**Part1**
+```{r}
+
+library(spatstat)
+
+setwd("~/Desktop/BC/Spring 2021/Emprical Methods/HW1/")
+data <- read.csv('bids1.csv')
+n <- length(data$bids)
+m <- mean(data$bids)
+sd <- sd(data$bids) 
+
+lower_bound <- min(data$bids)
+upper_bound <- max(data$bids)
+x <- seq(lower_bound, upper_bound, length.out = 300)
+y <- dnorm(x, mean =m, sd = sd)
+
+IQ <- IQR(data$bids)
+```
+Since min(`r sd` , IQ/1.34) = min (`r sd` , 0.8543843) = `r sd`
+
+```{r}
+h <- 0.9 * sd * (n)^(-1/5)
+h
+# bw.nrd0(data$bids) gives h 
+d_gauss <- density(data$bids, bw=h , kernel="gaussian")
+d_epanec <- density(data$bids, bw=h , kernel="epanechnikov")
+```
+**Part2**
+```{r}
+h_cv <- bw.ucv(data$bids)
+d_epanec2 <- density(data$bids, bw=h_cv , kernel="epanechnikov")
+```
+
+**Part3**
+```{r}
+hist(data$bids,20,prob=TRUE)
+lines(density(data$bids, bw=h , kernel="gaussian"), col="red" ,lwd=2)
+lines(density(data$bids, bw=h , kernel="epanechnikov"), col="darkgreen", lwd=2)
+lines(density(data$bids, bw=h_cv , kernel="epanechnikov"), col="blue", lwd=2)
+lines(x, y, lwd=2)
+
+
+
+
+```
+
+
+
+Gaussian kernel fits best.
+
+**Part4**
+```{r}
+g <- approxfun(d_epanec2$x, d_epanec2$y)
+g(upper_bound)
+
+G <- CDF(d_epanec2)
+G(upper_bound)
+
+v<- c()
+for(i in 1:n){
+  v[i] <- data$bids[i] + G(data$bids[i])/(2*g(data$bids[i]))
+  
+}
+
+```
+
+**Part5**
+```{r}
+h_pi <- bw.nrd0(v)
+d_v_epanec <- density(data$bids, bw=h_pi , kernel="epanechnikov")
+```
+
+**Part6**
+```{r}
+mean(v)
+sd(v)
+
+hist(v,20,prob=TRUE, ylim=c(0,0.5))
+lines(density(data$bids, bw=h_pi , kernel="epanechnikov"), col="red" ,lwd=2)
+
+```
+
+I guess the valuations were generated with log normal distribution.
+
